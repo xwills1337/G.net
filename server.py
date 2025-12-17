@@ -1,5 +1,5 @@
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import HTTPException
 from pydantic import BaseModel
 import psycopg2
@@ -8,11 +8,34 @@ import uvicorn
 import os
 
 
+API_KEY_NAME = "x-api-key"
+API_KEY = os.environ["API_KEY"]
+
+
 class RatingRequest(BaseModel):
     rating: int
 
 
 app = FastAPI()
+
+
+@app.middleware("http")
+async def verify_api_key_middleware(request: Request, call_next):
+    api_key = request.headers.get(API_KEY_NAME)
+    
+    if not api_key:
+        return JSONResponse(
+            status_code=401,
+            content={"error": "API key is missing"}
+        )
+    
+    if api_key != API_KEY:
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Invalid API key"}
+        )
+    
+    return await call_next(request)
 
 
 def get_db():
