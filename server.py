@@ -151,7 +151,7 @@ async def get_point_by_id(point_id: int):
 
 @app.post("/api/rate/{point_id}")
 @limiter.limit("1/10 minutes")
-async def rate_point(point_id: int, request: RatingRequest):
+async def rate_point(request: RatingRequest, point_id: int):
     conn = get_db()
     cur = conn.cursor()
     
