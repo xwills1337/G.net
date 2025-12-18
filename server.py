@@ -22,11 +22,22 @@ class RatingRequest(BaseModel):
 app = FastAPI()
 
 
-def get_fixed_ip(request):
-    return "127.0.0.1"
+def get_real_client_ip(request):
+    """
+    Получает реальный IP клиента на Railway
+    Формат: "клиентский-ip, railway-proxy-ip, ..."
+    """
+    if "x-forwarded-for" in request.headers:
+        forwarded = request.headers["x-forwarded-for"]
+        # Разделяем цепочку IP: клиент, прокси1, прокси2, ...
+        ips = [ip.strip() for ip in forwarded.split(",")]
+        if ips:
+            return ips[0]
+    if request.client and request.client.host:
+        return request.client.host
+    return "unknown"
 
-
-limiter = Limiter(key_func=get_fixed_ip)
+limiter = Limiter(key_func=get_real_client_ip)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
