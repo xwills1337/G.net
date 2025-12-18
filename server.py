@@ -21,21 +21,7 @@ app = FastAPI()
 
 @app.middleware("http")
 async def verify_api_key_middleware(request: Request, call_next):
-    print(f" Запрос: {request.method} {request.url.path}")
-    print(" Все заголовки:")
-    
-    for header_name, header_value in request.headers.items():
-        print(f"   {header_name}: {header_value}")
-    
-    # Специально ищем x-api-key в разных вариантах
-    api_key = request.headers.get("x-api-key")
-    if not api_key:
-        api_key = request.headers.get("X-Api-Key")
-    if not api_key:
-        api_key = request.headers.get("X-API-Key")
-    
-    print(f" Найденный x-api-key: '{api_key}'")
-    print(f" Ожидаемый ключ (первые 10 символов): '{API_KEY[:10]}...'")
+    api_key = request.headers.get(API_KEY_NAME)
     
     if not api_key:
         return JSONResponse(
