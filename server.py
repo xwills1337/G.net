@@ -4,7 +4,8 @@ from fastapi import HTTPException
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
+from typing import Optional
 import psycopg2
 import folium
 import uvicorn
@@ -16,7 +17,13 @@ API_KEY = os.environ["API_KEY"]
 
 
 class RatingRequest(BaseModel):
-    rating: int
+    rating: int = Field(ge=1, le=5)
+    
+    @validator('rating')
+    def validate_rating(cls, v):
+        if v not in [1, 2, 3, 4, 5]:
+            raise ValueError('Rating must be between 1 and 5')
+        return v
 
 
 app = FastAPI()
