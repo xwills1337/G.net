@@ -40,7 +40,7 @@ async def verify_api_key_middleware(request: Request, call_next):
 
 def get_db():
     """Подключение к БД"""
-    DATABASE_URL = os.environ.get('DATABASE_URL2')
+    DATABASE_URL = os.environ.get('DATABASE_URL')
     if not DATABASE_URL:
         DATABASE_URL = "postgresql://postgres:password@localhost:5432/wifinder"
     return psycopg2.connect(DATABASE_URL)
