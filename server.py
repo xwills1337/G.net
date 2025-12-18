@@ -151,7 +151,12 @@ async def get_point_by_id(point_id: int):
 
 @app.post("/api/rate/{point_id}")
 @limiter.limit("1/10 minutes")
-async def rate_point(request: RatingRequest, point_id: int):
+async def rate_point(request: Request, point_id: int):
+    import json
+    body = await request.body()
+    data = json.loads(body)
+    rating = data["rating"]
+    
     conn = get_db()
     cur = conn.cursor()
     
@@ -164,7 +169,7 @@ async def rate_point(request: RatingRequest, point_id: int):
         return {"error": "Точка не найдена"}
     
     ratings = row[0] if row[0] else []
-    ratings.append(request.rating)
+    ratings.append(rating)
     avg = sum(ratings) / len(ratings)
     
     cur.execute("""
