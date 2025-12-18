@@ -4,8 +4,7 @@ from fastapi import HTTPException
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from pydantic import BaseModel, Field, validator
-from typing import Optional
+from pydantic import BaseModel
 import psycopg2
 import folium
 import uvicorn
@@ -17,13 +16,7 @@ API_KEY = os.environ["API_KEY"]
 
 
 class RatingRequest(BaseModel):
-    rating: int = Field(ge=1, le=5)
-    
-    @validator('rating')
-    def validate_rating(cls, v):
-        if v not in [1, 2, 3, 4, 5]:
-            raise ValueError('Rating must be between 1 and 5')
-        return v
+    rating: int
 
 
 app = FastAPI()
@@ -162,7 +155,28 @@ async def rate_point(request: Request, point_id: int):
     import json
     body = await request.body()
     data = json.loads(body)
+    
+    # Проверяем наличие ключа rating
+    if "rating" not in data:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Rating field is required"}
+        )
+    
     rating = data["rating"]
+    
+    # Проверяем тип и значение
+    if not isinstance(rating, int):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Rating must be an integer"}
+        )
+    
+    if rating < 1 or rating > 5:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Rating must be between 1 and 5"}
+        )
     
     conn = get_db()
     cur = conn.cursor()
