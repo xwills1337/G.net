@@ -21,7 +21,7 @@ app = FastAPI()
 
 @app.middleware("http")
 async def verify_api_key_middleware(request: Request, call_next):
-    api_key = request.headers.get("x-api-key")
+    api_key = request.headers.get(API_KEY_NAME)
     
     if not api_key:
         return JSONResponse(
