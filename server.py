@@ -22,7 +22,11 @@ class RatingRequest(BaseModel):
 app = FastAPI()
 
 
-limiter = Limiter(key_func=get_remote_address)
+def get_fixed_ip(request):
+    return "127.0.0.1"
+
+
+limiter = Limiter(key_func=get_fixed_ip)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
