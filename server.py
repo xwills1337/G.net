@@ -21,6 +21,9 @@ app = FastAPI()
 
 @app.middleware("http")
 async def verify_api_key_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
+    
     api_key = request.headers.get(API_KEY_NAME)
     
     if not api_key:
