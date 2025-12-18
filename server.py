@@ -1,6 +1,9 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import HTTPException
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from pydantic import BaseModel
 import psycopg2
 import folium
@@ -17,6 +20,11 @@ class RatingRequest(BaseModel):
 
 
 app = FastAPI()
+
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 @app.middleware("http")
@@ -142,6 +150,7 @@ async def get_point_by_id(point_id: int):
 
 
 @app.post("/api/rate/{point_id}")
+@limiter.limit("1/10 minutes")
 async def rate_point(point_id: int, request: RatingRequest):
     conn = get_db()
     cur = conn.cursor()
