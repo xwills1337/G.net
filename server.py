@@ -171,5 +171,23 @@ async def rate_point(point_id: int, request: RatingRequest):
     return {"ok": True, "point_id": point_id}
 
 
+@app.get("/test-db")
+async def test_db():
+    """Тест только подключения к БД"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+        return {"db_status": "ok", "test": result[0]}
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(" DB ERROR:", error_details)
+        return {"db_status": "error", "error": str(e), "traceback": error_details}
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
