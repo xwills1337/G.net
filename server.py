@@ -87,11 +87,20 @@ def create_map(wifi_points):
     
     # Добавляем точки на карту
     for point in wifi_points:
+        rating = point.get('rating', 0)    
+        color = 'gray'
+        if rating > 0 and rating <= 2.5:
+            color = 'darkorange'
+        elif rating > 2.5 and rating <= 4.5:
+            color = 'blue'
+        elif rating > 4.5:
+            color = 'green'
+        
         folium.CircleMarker(
             location=[point['lat'], point['lon']],  # Координаты точки
             radius=4,                               # Размер кружка
-            color='blue',                           # Цвет границы
-            fillColor='blue',                       # Цвет заливки  
+            color=color,                            # Цвет границы
+            fillColor=color,                        # Цвет заливки  
             fillOpacity=0.7,                        # Прозрачность заливки
             weight=1                                # Толщина границы
         ).add_to(m)
@@ -105,14 +114,15 @@ async def main_page():
     # Получаем точки из БД
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT latitude, longitude FROM wifi_points")
+    cur.execute("SELECT latitude, longitude, avg_rating FROM wifi_points")
     
     # Преобразуем в нужный формат для функции create_map
     wifi_points = []
     for row in cur.fetchall():
         wifi_points.append({
             "lat": float(row[0]),
-            "lon": float(row[1])
+            "lon": float(row[1]),
+            "rating": float(row[2]) if row[2] is not None else None
         })
     
     cur.close()
