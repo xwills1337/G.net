@@ -129,12 +129,13 @@ async def main_page():
 async def get_data():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT id, latitude, longitude, avg_rating FROM wifi_points")
+    cur.execute("SELECT id, latitude, longitude, address, avg_rating FROM wifi_points")
     points = [{
         "id": r[0], 
         "lat": float(r[1]), 
         "lon": float(r[2]),
-        "rating": float(r[3]) if r[3] else 0.0
+        "address": r[3] if r[3] else "",
+        "rating": float(r[4]) if r[4] else 0.0
     } for r in cur.fetchall()]
     cur.close()
     conn.close()
@@ -143,11 +144,11 @@ async def get_data():
 
 @app.get("/point/{point_id}")
 async def get_point_by_id(point_id: int):
-    """Возвращает координаты точки по ID с рейтингом"""
+    """Возвращает информацию точки по ID"""
     conn = get_db()
     cur = conn.cursor()
     
-    cur.execute("SELECT latitude, longitude, avg_rating FROM wifi_points WHERE id = %s", (point_id,))
+    cur.execute("SELECT latitude, longitude, address, avg_rating FROM wifi_points WHERE id = %s", (point_id,))
     
     row = cur.fetchone()
     cur.close()
@@ -160,7 +161,8 @@ async def get_point_by_id(point_id: int):
         "id": point_id,
         "latitude": float(row[0]),
         "longitude": float(row[1]),
-        "rating": float(row[2]) if row[2] else 0.0
+        "address": row[2] if row[2] else "",
+        "rating": float(row[3]) if row[3] else 0.0
     }
 
 
